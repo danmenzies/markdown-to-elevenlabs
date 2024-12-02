@@ -74,10 +74,6 @@ Copy-Item .env.example .env
 
 ## Usage
 
-Here’s the updated section of the `README.md` file:
-
----
-
 ### 1. Prepare Markdown Files
 Place your Markdown files in the `markdown` folder located in the project root. Before running the script, review and edit these files as needed:
 - Remove any content you don't want included, such as:
