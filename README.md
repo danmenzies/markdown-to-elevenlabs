@@ -1,7 +1,3 @@
-Here’s a draft for your `README.md` file to document your project:
-
----
-
 # Markdown to ElevenLabs
 
 **Markdown to ElevenLabs** is an open-source project that converts Markdown files into high-quality voiceovers using the [ElevenLabs Text-to-Speech API](https://www.elevenlabs.io). The project is designed for creating natural-sounding audio from written content, ideal for podcasts, audiobooks, and more.
