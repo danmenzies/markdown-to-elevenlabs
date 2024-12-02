@@ -76,6 +76,8 @@ class split_markdown:
         content = re.sub(r'>\s+', '', content)  # Blockquotes
         content = re.sub(r'-{3,}', '', content)  # Horizontal rules
 
+
+
         # Split content into sections by paragraphs or full lists
         sections = re.split(r'(?:\n{2,})', content)  # Splits by double newlines (paragraphs)
 
@@ -95,6 +97,10 @@ class split_markdown:
                 while sections and re.match(r'^(\s*[-*]|\d+\.)', sections[0]):
                     list_items.append(sections.pop(0))
                 section = "\n".join(list_items)
+
+                # Remove leading dashes or asterisks, followed by a space, at the start of each line
+                # This helps prevent errant noises when the TTS engine reads the list
+                section = re.sub(r'^\s*[-*]\s', '', section, flags=re.MULTILINE)
 
             # Additional cleaning: Remove any lingering problematic characters
             section = re.sub(r'[^\x00-\x7F]+', ' ', section)  # Remove non-ASCII characters
