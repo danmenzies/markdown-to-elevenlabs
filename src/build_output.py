@@ -54,21 +54,26 @@ class build_output:
 
     def combine_final_audio(self):
         """
-        Combine all the audio files into one
-        :return:
+        Combine all the audio files into one for each folder in the output directory.
         """
-
-        # Combine all audio files into one
         for folder_name in sorted(os.listdir(self.output_dir)):
+            folder_path = os.path.join(self.output_dir, folder_name)
+
+            # Skip if the folder_path is not a directory
+            if not os.path.isdir(folder_path):
+                print(f"Skipping non-directory: {folder_path}")
+                continue
+
             combined_audio_path = os.path.join(self.output_dir, f"{folder_name}.mp3")
             print(f"Combining audio for: {folder_name}")
 
             # Get all audio files in the folder
             audio_files = []
-            folder_path = os.path.join(self.output_dir, folder_name)
             for file_name in sorted(os.listdir(folder_path)):
-                if file_name.endswith(".mp3"):
-                    audio_files.append(os.path.join(folder_path, file_name))
+                file_path = os.path.join(folder_path, file_name)
+                if file_name.endswith(".mp3") and os.path.isfile(file_path):
+                    audio_files.append(file_path)
+
             # Combine audio files for each folder
             self.combine_audio(audio_files, combined_audio_path)
 
