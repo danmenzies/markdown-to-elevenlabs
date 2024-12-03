@@ -1,7 +1,9 @@
 import os
+import time
 from pathlib import Path
 from elevenlabs import ElevenLabs
 from pydub import AudioSegment
+from elevenlabs.core.api_error import ApiError
 
 
 class build_output:
@@ -76,29 +78,59 @@ class build_output:
         :param input_file: Path to the Markdown file section
         :param output_audio_path: Path to save the generated audio
         """
+
+        # Skip if the output audio file already exists
+        if Path(output_audio_path).exists():
+            print(f"Skipping existing file: {output_audio_path}")
+            return None
+
+        # Read the text from the input file
         with open(input_file, "r") as file:
             text = file.read().strip()
 
+        # Skip empty files
         if not text:
             print(f"Skipping empty file: {input_file}")
             return None
 
-        # Generate audio using ElevenLabs API
-        print(f"Generating audio for: {input_file}")
-        response = self.client.text_to_speech.convert(
-            voice_id=self.voice_id,
-            model_id="eleven_multilingual_v2",  # Use the updated multilingual model
-            text=text,
-        )
+        # Retry loop for handling API errors
+        max_retries = 5
+        backoff_time = 60  # Initial backoff time in seconds
 
-        # Collect the full audio content from the generator
-        audio_content = b"".join(response)
+        for attempt in range(max_retries):
+            try:
+                # Generate audio using ElevenLabs API
+                print(f"Generating audio for: {input_file} (Attempt {attempt + 1})")
+                response = self.client.text_to_speech.convert(
+                    voice_id=self.voice_id,
+                    model_id="eleven_multilingual_v2",  # Use the updated multilingual model
+                    text=text,
+                )
 
-        # Save the response audio to file
-        with open(output_audio_path, "wb") as audio_file:
-            audio_file.write(audio_content)
+                # Collect the full audio content from the generator
+                audio_content = b"".join(response)
 
-        return output_audio_path
+                # Save the response audio to file
+                with open(output_audio_path, "wb") as audio_file:
+                    audio_file.write(audio_content)
+
+                print(f"Audio successfully generated: {output_audio_path}")
+                return output_audio_path
+
+            except ApiError as e:
+                if e.status_code == 429:
+                    print(f"Rate limit reached: {e}. Retrying in {backoff_time} seconds...")
+                    time.sleep(backoff_time)
+                    backoff_time = min(backoff_time * 2, 600)  # Cap the backoff time at 600 seconds
+                else:
+                    print(f"API Error: {e}")
+                    break
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                break
+
+        print(f"Failed to generate audio for: {input_file} after {max_retries} attempts.")
+        return None
 
     def combine_audio(self, audio_files, combined_audio_path):
         """
